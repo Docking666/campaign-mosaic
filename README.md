@@ -20,19 +20,33 @@
 
 ### 方式一：Fork 后一键部署（推荐）
 
-1. **Fork 本仓库**
-2. 进入仓库 Settings → Secrets and variables → Actions，添加以下 Secrets：
+1. **Fork 本仓库** → https://github.com/Docking666/campaign-mosaic/fork
 
-   | Secret 名称 | 说明 |
-   |---|---|
-   | `YOUZAN_API_KEY` | 有赞开放平台 API Key |
-   | `UMENG_APP_KEY` | 友盟 App Key |
-   | `JULIANG_ACCOUNT_ID` | 巨量引擎广告账户 ID |
-   | `FEISHU_BOT_WEBHOOK` | 飞书机器人 Webhook 地址 |
-   | `SMTP_PASSWORD` | 邮箱 SMTP 授权密码 |
+2. **启用 GitHub Pages**
+   - 进入仓库 Settings → Pages
+   - Source 选择 "GitHub Actions"
 
-3. 修改 `config.yaml` 中的活动名称和日期
-4. 在 Actions 页面手动触发一次，验证是否正常运行
+3. **配置 Secrets**
+   - 进入 Settings → Secrets and variables → Actions
+   - 添加以下 Secrets（至少配置一个数据源）：
+
+   | Secret 名称 | 说明 | 必需 |
+   |---|---|---|
+   | `YOUZAN_API_KEY` | 有赞开放平台 API Key | 可选 |
+   | `UMENG_APP_KEY` | 友盟 App Key | 可选 |
+   | `JULIANG_ACCOUNT_ID` | 巨量引擎广告账户 ID | 可选 |
+   | `FEISHU_BOT_WEBHOOK` | 飞书机器人 Webhook 地址 | 可选 |
+   | `SMTP_PASSWORD` | 邮箱 SMTP 授权密码 | 可选 |
+
+4. **手动触发首次运行**
+   - 进入 Actions 页面
+   - 选择 "CampaignMosaic Daily Report" 工作流
+   - 点击 "Run workflow"
+
+5. **查看报告**
+   - 等待工作流执行完成
+   - 访问 `https://Docking666.github.io/campaign-mosaic` 查看在线报告
+   - （将 `Docking666` 替换为你的 GitHub 用户名）
 
 ### 方式二：本地运行
 
@@ -190,6 +204,20 @@ data_sources:
 - 📊 **汇总柱状图** — 各指标累计值对比
 - 🍩 **占比饼图** — 指标均值分布
 - 📋 **明细表格** — 按日拆分的完整数据
+
+### 🌐 GitHub Pages 在线访问
+
+部署后，报告会自动发布到 GitHub Pages：
+
+```
+https://<你的GitHub用户名>.github.io/campaign-mosaic
+```
+
+**特性：**
+- ✅ 完全免费，无需额外服务器
+- ✅ 自动 HTTPS 加密
+- ✅ 支持自定义域名（可选）
+- ✅ 每天自动更新最新报告
 
 ## 🛡️ 安全说明
 

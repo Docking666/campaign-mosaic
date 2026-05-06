@@ -6,11 +6,26 @@ on:
     - cron: '0 1 * * *'
   workflow_dispatch:
     # 允许手动触发
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily_report.yml'
+      - 'campaign_mosaic/**'
+      - 'config.example.yaml'
 
+# 设置 GITHUB_TOKEN 的权限
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+# 允许同时只有一个部署任务运行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
+  # 生成报告任务
   generate-report:
     runs-on: ubuntu-latest
 
@@ -54,16 +69,31 @@ jobs:
           WECOM_BOT_WEBHOOK: ${{ secrets.WECOM_BOT_WEBHOOK }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
 
-      - name: Deploy report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./reports
-          keep_files: true
+      - name: Create index.html for GitHub Pages
+        run: |
+          # 找到最新的报告文件
+          LATEST_REPORT=$(ls -t reports/report_*.html 2>/dev/null | head -n1)
+          if [ -n "$LATEST_REPORT" ]; then
+            cp "$LATEST_REPORT" reports/index.html
+            echo "Created index.html from $LATEST_REPORT"
+          else
+            echo "No report found"
+            exit 1
+          fi
 
-      - name: Upload report as artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: daily-report
-          path: ./reports/
-          retention-days: 30
+          path: ./reports
+
+  # 部署到 GitHub Pages
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: generate-report
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
