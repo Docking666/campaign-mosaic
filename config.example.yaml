@@ -1,0 +1,54 @@
+campaign:
+  name: "618年中大促"
+  start_date: "2026-05-20"
+  end_date: "2026-06-18"
+
+data_sources:
+  youzan:
+    enabled: true
+    shop_name: "主商城"
+    api_key: ${YOUZAN_API_KEY}
+  umeng:
+    enabled: true
+    app_key: ${UMENG_APP_KEY}
+  baidu_tongji:
+    enabled: false
+  juliang:
+    enabled: true
+    account_id: ${JULIANG_ACCOUNT_ID}
+  csv_import:
+    enabled: false
+    file_path: "./sample_data/custom_data.csv"
+
+metrics:
+  - name: "日活用户(DAU)"
+    source: "umeng.dau"
+  - name: "交易金额"
+    source: "youzan.revenue"
+  - name: "广告消耗"
+    source: "juliang.cost"
+  - name: "ROI"
+    formula: "youzan.revenue / juliang.cost"
+
+report:
+  template: "minimal"  # 可选 'minimal' 或 'detailed'
+  output_dir: "./reports"
+
+notifications:
+  email:
+    enabled: false
+    smtp_server: "smtp.feishu.com"
+    smtp_port: 465
+    sender: "report@example.com"
+    password: ${SMTP_PASSWORD}
+    receivers: ["boss@example.com", "ops@example.com"]
+  feishu_bot:
+    enabled: false
+    webhook_url: ${FEISHU_BOT_WEBHOOK}
+  dingtalk_bot:
+    enabled: false
+    webhook_url: ${DINGTALK_BOT_WEBHOOK}
+    secret: ${DINGTALK_BOT_SECRET}
+  wecom_bot:
+    enabled: false
+    webhook_url: ${WECOM_BOT_WEBHOOK}
