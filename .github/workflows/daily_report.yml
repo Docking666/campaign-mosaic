@@ -2,33 +2,28 @@ name: CampaignMosaic Daily Report
 
 on:
   schedule:
-    # 每天 UTC 时间 01:00 执行（北京时间 09:00）
     - cron: '0 1 * * *'
   workflow_dispatch:
-    # 允许手动触发
   push:
     branches: [main]
     paths:
       - '.github/workflows/daily_report.yml'
       - 'campaign_mosaic/**'
       - 'config.example.yaml'
+      - 'webui/**'
 
-# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 允许同时只有一个部署任务运行
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # 生成报告任务
   generate-report:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,50 +38,34 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Copy config and set environment variables
+      - name: Copy config and run
         run: |
           cp config.example.yaml config.yaml
-        env:
-          YOUZAN_API_KEY: ${{ secrets.YOUZAN_API_KEY }}
-          UMENG_APP_KEY: ${{ secrets.UMENG_APP_KEY }}
-          JULIANG_ACCOUNT_ID: ${{ secrets.JULIANG_ACCOUNT_ID }}
-          FEISHU_BOT_WEBHOOK: ${{ secrets.FEISHU_BOT_WEBHOOK }}
-          DINGTALK_BOT_WEBHOOK: ${{ secrets.DINGTALK_BOT_WEBHOOK }}
-          DINGTALK_BOT_SECRET: ${{ secrets.DINGTALK_BOT_SECRET }}
-          WECOM_BOT_WEBHOOK: ${{ secrets.WECOM_BOT_WEBHOOK }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-
-      - name: Run CampaignMosaic
-        run: |
           python -m campaign_mosaic.main --config config.yaml
         env:
           YOUZAN_API_KEY: ${{ secrets.YOUZAN_API_KEY }}
           UMENG_APP_KEY: ${{ secrets.UMENG_APP_KEY }}
           JULIANG_ACCOUNT_ID: ${{ secrets.JULIANG_ACCOUNT_ID }}
           FEISHU_BOT_WEBHOOK: ${{ secrets.FEISHU_BOT_WEBHOOK }}
-          DINGTALK_BOT_WEBHOOK: ${{ secrets.DINGTALK_BOT_WEBHOOK }}
-          DINGTALK_BOT_SECRET: ${{ secrets.DINGTALK_BOT_SECRET }}
-          WECOM_BOT_WEBHOOK: ${{ secrets.WECOM_BOT_WEBHOOK }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
 
-      - name: Create index.html for GitHub Pages
+      - name: Setup Pages structure
         run: |
-          # 找到最新的报告文件
-          LATEST_REPORT=$(ls -t reports/report_*.html 2>/dev/null | head -n1)
-          if [ -n "$LATEST_REPORT" ]; then
-            cp "$LATEST_REPORT" reports/index.html
-            echo "Created index.html from $LATEST_REPORT"
-          else
-            echo "No report found"
-            exit 1
+          mkdir -p pages/report
+          cp -r webui/* pages/ 2>/dev/null || true
+          if [ -d "reports" ]; then
+            cp reports/*.html pages/report/ 2>/dev/null || true
+            LATEST_REPORT=$(ls -t reports/report_*.html 2>/dev/null | head -n1)
+            if [ -n "$LATEST_REPORT" ]; then
+              cp "$LATEST_REPORT" pages/report/index.html
+            fi
           fi
+          echo "Pages structure:" && find pages -type f
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./reports
+          path: ./pages
 
-  # 部署到 GitHub Pages
   deploy:
     environment:
       name: github-pages

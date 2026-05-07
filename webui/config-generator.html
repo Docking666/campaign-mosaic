@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampaignMosaic - 配置生成器</title>
+    <style>
+        :root { --primary: #4F46E5; --success: #10B981; --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-500: #6B7280; --gray-700: #374151; --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-50); color: var(--gray-700); line-height: 1.6; }
+        .header { background: linear-gradient(135deg, var(--primary), #818CF8); color: white; padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 30px 20px; }
+        .card { background: white; border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .card h2 { font-size: 18px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-100); }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-weight: 500; margin-bottom: 6px; font-size: 14px; }
+        input, select { width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: var(--radius); font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .help-text { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .data-source { border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; background: var(--gray-50); }
+        .data-source-content { display: none; margin-top: 12px; }
+        .data-source-content.active { display: block; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #4338CA; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+        .actions { display: flex; gap: 12px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+        .yaml-output { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: var(--radius); font-family: monospace; font-size: 13px; white-space: pre-wrap; display: none; margin-top: 20px; }
+        .yaml-output.active { display: block; }
+        .hidden { display: none; }
+        .info-box { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius); padding: 16px; margin-bottom: 20px; }
+        .info-box h4 { color: #1E40AF; font-size: 14px; margin-bottom: 8px; }
+        .info-box ol { margin-left: 20px; color: #3B82F6; font-size: 13px; }
+        code { background: var(--gray-100); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ CampaignMosaic 配置生成器</h1>
+        <p>无需编写代码，通过表单即可生成配置文件</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>📋 活动基本信息</h2>
+            <div class="form-group">
+                <label>活动名称</label>
+                <input type="text" id="campaign-name" value="618年中大促">
+            </div>
+            <div class="form-group">
+                <label>开始日期</label>
+                <input type="date" id="start-date" value="2026-05-20">
+            </div>
+            <div class="form-group">
+                <label>结束日期</label>
+                <input type="date" id="end-date" value="2026-06-18">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📡 数据源配置</h2>
+            
+            <div class="data-source">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="youzan-enabled" onchange="toggle('youzan')">
+                    <label for="youzan-enabled"><strong>有赞</strong> - 交易数据</label>
+                </div>
+                <div class="data-source-content" id="youzan-content">
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="password" id="youzan-key" placeholder="输入有赞 API Key">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-source">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="umeng-enabled" onchange="toggle('umeng')">
+                    <label for="umeng-enabled"><strong>友盟</strong> - 用户行为</label>
+                </div>
+                <div class="data-source-content" id="umeng-content">
+                    <div class="form-group">
+                        <label>App Key</label>
+                        <input type="password" id="umeng-key" placeholder="输入友盟 App Key">
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-source">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="juliang-enabled" onchange="toggle('juliang')">
+                    <label for="juliang-enabled"><strong>巨量引擎</strong> - 广告数据</label>
+                </div>
+                <div class="data-source-content" id="juliang-content">
+                    <div class="form-group">
+                        <label>广告账户 ID</label>
+                        <input type="text" id="juliang-id" placeholder="输入账户 ID">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 指标配置</h2>
+            <div id="metrics">
+                <div class="form-group metric-row">
+                    <div style="display: flex; gap: 12px;">
+                        <input type="text" class="metric-name" placeholder="指标名称" value="日活用户" style="flex: 1;">
+                        <select class="metric-source" style="flex: 1;">
+                            <option value="umeng.dau">友盟 - 日活</option>
+                            <option value="youzan.revenue">有赞 - 交易金额</option>
+                            <option value="juliang.cost">巨量引擎 - 广告消耗</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="removeMetric(this)">删除</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="addMetric()" style="margin-top: 12px;">+ 添加指标</button>
+        </div>
+
+        <div class="card">
+            <h2>📬 通知配置（可选）</h2>
+            <div class="data-source">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="feishu-enabled" onchange="toggle('feishu')">
+                    <label for="feishu-enabled"><strong>飞书机器人</strong></label>
+                </div>
+                <div class="data-source-content" id="feishu-content">
+                    <div class="form-group">
+                        <label>Webhook 地址</label>
+                        <input type="url" id="feishu-url" placeholder="https://open.feishu.cn/...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="info-box">
+                <h4>📖 使用步骤</h4>
+                <ol>
+                    <li>填写下方表单配置数据源</li>
+                    <li>点击"生成配置"生成 YAML 文件</li>
+                    <li>下载并上传 config.yaml 到仓库根目录</li>
+                    <li>在 Settings → Secrets 添加 API 密钥</li>
+                    <li>触发 Actions 工作流运行</li>
+                </ol>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="generate()">⚙️ 生成配置</button>
+                <button class="btn btn-success hidden" id="download-btn" onclick="download()">⬇️ 下载 config.yaml</button>
+            </div>
+            <pre class="yaml-output" id="output"></pre>
+        </div>
+    </div>
+
+    <script>
+        let yaml = '';
+        function toggle(id) {
+            const el = document.getElementById(id + '-content');
+            el.classList.toggle('active', document.getElementById(id + '-enabled').checked);
+        }
+        function addMetric() {
+            const div = document.createElement('div');
+            div.className = 'form-group metric-row';
+            div.innerHTML = `<div style="display: flex; gap: 12px;"><input type="text" class="metric-name" placeholder="指标名称" style="flex: 1;"><select class="metric-source" style="flex: 1;"><option value="umeng.dau">友盟 - 日活</option><option value="youzan.revenue">有赞 - 交易金额</option><option value="juliang.cost">巨量引擎 - 广告消耗</option></select><button class="btn btn-secondary" onclick="removeMetric(this)">删除</button></div>`;
+            document.getElementById('metrics').appendChild(div);
+        }
+        function removeMetric(btn) {
+            if (document.querySelectorAll('.metric-row').length > 1) {
+                btn.closest('.metric-row').remove();
+            }
+        }
+        function generate() {
+            const name = document.getElementById('campaign-name').value;
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            
+            yaml = `# CampaignMosaic 配置\ncampaign:\n  name: "${name}"\n  start_date: "${start}"\n  end_date: "${end}"\n\ndata_sources:\n`;
+            
+            if (document.getElementById('youzan-enabled').checked) {
+                yaml += `  youzan:\n    enabled: true\n    api_key: \${YOUZAN_API_KEY}\n`;
+            }
+            if (document.getElementById('umeng-enabled').checked) {
+                yaml += `  umeng:\n    enabled: true\n    app_key: \${UMENG_APP_KEY}\n`;
+            }
+            if (document.getElementById('juliang-enabled').checked) {
+                const id = document.getElementById('juliang-id').value;
+                yaml += `  juliang:\n    enabled: true\n    account_id: "${id}"\n`;
+            }
+            
+            yaml += `\nmetrics:\n`;
+            document.querySelectorAll('.metric-row').forEach(row => {
+                const name = row.querySelector('.metric-name').value;
+                const source = row.querySelector('.metric-source').value;
+                if (name && source) yaml += `  - name: "${name}"\n    source: "${source}"\n`;
+            });
+            
+            yaml += `\nreport:\n  template: "minimal"\n  output_dir: "./reports"\n\nnotifications:\n`;
+            if (document.getElementById('feishu-enabled').checked) {
+                yaml += `  feishu_bot:\n    enabled: true\n    webhook_url: \${FEISHU_BOT_WEBHOOK}\n`;
+            }
+            
+            document.getElementById('output').textContent = yaml;
+            document.getElementById('output').classList.add('active');
+            document.getElementById('download-btn').classList.remove('hidden');
+        }
+        function download() {
+            const blob = new Blob([yaml], {type: 'text/yaml'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'config.yaml';
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
